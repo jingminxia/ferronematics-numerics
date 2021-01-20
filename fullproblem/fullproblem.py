@@ -213,10 +213,10 @@ class FerronematicsProblem(BifurcationProblem):
 
         # render the plot
         fig = plt.figure()
-        gridspec.GridSpec(3,4)
+        gridspec.GridSpec(4,4)
         plt.subplots_adjust(left=0.1, right=0.9, top=0.98, bottom=0.05)
         # subplot of |Q|, Q_{11}, Q_{12}, rho^*
-        plt.subplot2grid((3,4), (0,0), colspan=3, rowspan=1)
+        plt.subplot2grid((4,4), (0,0), colspan=3, rowspan=1)
         plt.plot(coords, Qnorm.dat.data_ro/sqrt(2), 'b', label=r'$|Q|$', linewidth=4)
         plt.plot(coords, np.full(len(coords), self.homorho1(params)), '--k', label=r'$\rho^*$', linewidth=4)
         #plt.plot(coords, q.sub(0).dat.data_ro, '--g', label=r'$Q_{11}$', linewidth=4)
@@ -226,21 +226,13 @@ class FerronematicsProblem(BifurcationProblem):
         plt.legend(loc="lower right", bbox_to_anchor=(0.9,0.0), frameon=False, fontsize=18)
         plt.xlabel(r'$y$', fontsize=18)
         # subplot for director
-        plt.subplot2grid((3,4), (0,3), colspan=1, rowspan=1)
+        plt.subplot2grid((4,4), (0,3), colspan=1, rowspan=1)
         plt.quiver(np.zeros(self.N+1), coords[::self.degree], np.abs(n.sub(0).dat.data), np.abs(n.sub(1).dat.data), color='k', scale=5.0, headwidth=1, headlength=1.0, headaxislength=0.01, pivot='mid')
         plt.axis("off")
         plt.title(r"$\mathbf{n}$", fontsize=18)
-        # subplot of theta
-        #plt.subplot2grid((3,4), (0,6), colspan=3, rowspan=2)
         theta = np.arctan2(q.sub(1).dat.data_ro, q.sub(0).dat.data_ro)
-        #plt.plot(coords, theta, 'k', linewidth=4)
-        #plt.xlabel(r'$y$', fontsize=18)
-        #plt.xticks([-1.0,-0.5,0,0.5,1.0],fontsize=18)
-        #plt.yticks([-3.2,-1.5,0,1.5,3.2], fontsize=18)
-        #plt.ylabel(r'$\theta$', fontsize=18)
-
         # subplot for |M|, M_1, M_2, sigma^*
-        plt.subplot2grid((3,4), (1,0), colspan=3, rowspan=1)
+        plt.subplot2grid((4,4), (1,0), colspan=3, rowspan=1)
         plt.plot(coords, mnorm.dat.data_ro, 'r', label=r'$|M|$', linewidth=4)
         plt.plot(coords, np.full(len(coords), sqrt(1+2*c*self.homorho1(params))), '--k', label=r'$\sqrt{1+2c\rho^*}$', linewidth=4)
         #plt.plot(coords, m.sub(0).dat.data_ro, '--g', label=r'$M_1$', linewidth=4)
@@ -250,30 +242,38 @@ class FerronematicsProblem(BifurcationProblem):
         plt.xticks([-1.0,-0.5,0,0.5,1.0],fontsize=18)
         plt.yticks(fontsize=18)
         # subplot of M
-        plt.subplot2grid((3,4), (1,3), colspan=1, rowspan=1)
+        plt.subplot2grid((4,4), (1,3), colspan=1, rowspan=1)
         m1 = m.sub(0).dat.data_ro/(mnorm.dat.data_ro+1e-15)
         m2 = m.sub(1).dat.data_ro/(mnorm.dat.data_ro+1e-15)
         plt.quiver(np.zeros(self.N+1), coords[::self.degree], m1[::self.degree], m2[::self.degree], color='k', scale=5.0, headwidth=8, headlength=8, headaxislength=8, pivot='mid')
         plt.axis("off")
-        plt.title(r'$\mathbf{M}$', fontsize=18)
-        # subplot of phi
-        #plt.subplot2grid((3,4), (2,6), colspan=3, rowspan=2)
+        plt.title(r'$\mathbf{m}$', fontsize=18)
         phi = np.arctan2(m.sub(1).dat.data_ro, m.sub(0).dat.data_ro)
-        #plt.plot(coords, phi, 'k', linewidth=4)
-        #plt.xlabel(r'$y$', fontsize=18)
-        #plt.xticks([-1.0,-0.5,0,0.5,1.0],fontsize=18)
-        #plt.yticks([-3.2,-1.5,0,1.5,3.2], fontsize=18)
-        #plt.ylabel(r'$\phi$', fontsize=18)
         # subplot of 2\phi-\theta
-        plt.subplot2grid((3,4), (2,0), colspan=4, rowspan=1)
+        plt.subplot2grid((4,4), (2,0), colspan=4, rowspan=1)
         plt.plot(coords, 2*phi-theta, 'k', linewidth=4)
         plt.ylabel(r"$2\phi-\theta$", fontsize=18)
         plt.xticks([-1.0,-0.5,0,0.5,1.0],fontsize=18)
         plt.yticks([-2*pi,-pi,0,pi,2*pi],[r"$-2\pi$",r"$-\pi$",r"$0$",r"$\pi$",r"$2\pi$"],fontsize=18)
         plt.xlabel(r"$y$", fontsize=18)
-
+        #subplot of \theta
+        plt.subplot2grid((4,4), (3,0), colspan=2, rowspan=1)
+        plt.plot(coords, theta, 'k', linewidth=4)
+        plt.xlabel(r'$y$', fontsize=18)
+        plt.xticks([-1.0,-0.5,0,0.5,1.0],fontsize=18)
+        plt.yticks([-pi,-pi/2,0,pi/2,pi],[r"$-\pi$",r"$-\pi/2$",r"$0$",r"$\pi/2$",r"$\pi$"],fontsize=18)
+        plt.ylabel(r'$\theta$', fontsize=18)
+        # subplot of \phi
+        plt.subplot2grid((4,4), (3,2), colspan=2, rowspan=1)
+        plt.plot(coords, phi, 'k', linewidth=4)
+        plt.xlabel(r'$y$', fontsize=18)
+        plt.xticks([-1.0,-0.5,0,0.5,1.0],fontsize=18)
+        plt.yticks([-pi,-pi/2,0,pi/2,pi],[r"$-\pi$",r"$-\pi/2$",r"$0$",r"$\pi/2$",r"$\pi$"],fontsize=18)
+        plt.ylabel(r'$\phi$', fontsize=18, labelpad=-400)
+        plt.xlabel(r"$y$", fontsize=18)
+        plt.tick_params(axis='y', which='both', left=False, right=True, labelleft=False, labelright=True)
         #fig.tight_layout()
-        fig.set_size_inches(w=12,h=15)
+        fig.set_size_inches(w=12,h=18)
         fig.savefig(filename)
         plt.clf()
 
@@ -330,5 +330,5 @@ class FerronematicsProblem(BifurcationProblem):
 if __name__ == "__main__":
     dc = DeflatedContinuation(problem=FerronematicsProblem(), teamsize=1, verbose=True, clear_output=True, logfiles=False)
     params = linspace(0.2, 3.0, 281)
-    dc.run(values={"c": 1, "xi": 1, "l": 0.01}, freeparam="l")
-    #dc.run(values={"c": 5, "xi": 1, "l": 0.01}, freeparam="l")
+    #dc.run(values={"c": 1, "xi": 1, "l": 0.01}, freeparam="l")
+    dc.run(values={"c": 5, "xi": 1, "l": 0.01}, freeparam="l")
