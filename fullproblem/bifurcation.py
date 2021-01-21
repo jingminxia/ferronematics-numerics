@@ -6,6 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
+omega2 = -1/2+sqrt(3)/2j
+omega3 = -1/2-sqrt(3)/2j
+
 class FerronematicsProblem(BifurcationProblem):
     def mesh(self, comm):
         self.levels = 0
@@ -17,7 +20,7 @@ class FerronematicsProblem(BifurcationProblem):
         mh = MeshHierarchy(base, self.levels+self.nviz)
 
         self.mh = mh
-        self.CG1 = FunctionSpace(mh[self.levels], "CG", self.degree)
+        self.CG = FunctionSpace(mh[self.levels], "CG", self.degree)
         return mh[self.levels]
 
     def function_space(self, mesh):
@@ -35,6 +38,27 @@ class FerronematicsProblem(BifurcationProblem):
         return [(c, "c", r"$c$"),
                 (xi, "xi", r"$\xi$"),
                 (l, "l", r"$l$")]
+
+    def homorho1(self, params):
+        # the first homogeneous solution of rho
+        c = params[0]
+        xi = params[1]
+        rho1 = pow(c/8+sqrt(c**2/64 - (1+c**2/(2*xi))**3/27),1/3) + pow(c/8-sqrt(c**2/64 - (1+c**2/(2*xi))**3/27),1/3)
+        return rho1
+
+    def homorho2(self, params):
+        # the second homogeneous solution of rho
+        c = params[0]
+        xi = params[1]
+        rho2 = pow(-c/8+sqrt(c**2/64 - (1+c**2/(2*xi))**3/27),1/3) + pow(-c/8-sqrt(c**2/64 - (1+c**2/(2*xi))**3/27),1/3)
+        return rho2
+
+    def homorho3(self, params):
+        # the third homogeneous solution of rho
+        c = params[0]
+        xi = params[1]
+        rho3 = omega3*pow(-c/8+sqrt(c**2/64 - (1+c**2/(2*xi))**3/27),1/3) + omega2*pow(-c/8-sqrt(c**2/64 - (1+c**2/(2*xi))**3/27),1/3)
+        return rho3
 
     def energy(self, z, params):
         c = params[0]
@@ -119,15 +143,15 @@ class FerronematicsProblem(BifurcationProblem):
     def solver_parameters(self, params, task, **kwargs):
         if isinstance(task, DeflationTask):
             damping = 0.9
-            maxits = 500
+            maxits = 1000
         else:
             damping = 0.9 
-            maxits = 500
+            maxits = 1000
 
         params = {
             "snes_max_it": maxits,
-            "snes_rtol": 1.0e-10,
-            "snes_atol": 1.0e-10,
+            "snes_rtol": 1.0e-7,
+            "snes_atol": 1.0e-8,
             "snes_stol":    0.0,
             "snes_monitor": None,
             "snes_linesearch_type": "l2",
@@ -149,7 +173,7 @@ class FerronematicsProblem(BifurcationProblem):
         zsrc = z
         mesh = z.function_space().mesh()
         x = SpatialCoordinate(mesh)
-        coords = Function(self.CG1).interpolate(x[0]).dat.data_ro
+        coords = Function(self.CG).interpolate(x[0]).dat.data_ro
 
         if self.nviz > 0:
             ele = z.function_space().ufl_element()
@@ -162,7 +186,7 @@ class FerronematicsProblem(BifurcationProblem):
                 zsrc = znew
 
         (q, m) = zsrc.split()
-        mnorm = Function(self.CG1).interpolate(sqrt(inner(m,m)))
+        mnorm = Function(self.CG).interpolate(sqrt(inner(m,m)))
         m.rename("magnetization")
         q1 = q[0]
         q2 = q[1]
@@ -171,7 +195,7 @@ class FerronematicsProblem(BifurcationProblem):
         n = Function(VectorFunctionSpace(mesh, "CG", 1, dim=2))
         n.vector()[:,:] = eigv[:,:,1]
         n.rename("director")
-        Qnorm = Function(self.CG1)
+        Qnorm = Function(self.CG)
         Qnorm.interpolate(sqrt(inner(Q,Q)))
         Qnorm.rename("norm-of-Q")
 
@@ -180,26 +204,32 @@ class FerronematicsProblem(BifurcationProblem):
 #        bound = 1+2*c/xi*rhomax + rhomax**2
 #        print("Expected bound: %s" % bound)
 
+        qnorm = Function(self.CG).interpolate(sqrt(inner(q,q)))
+        print("Max of rho: %s" % max(qnorm.dat.data_ro))
+        print("Max of sigma: %s" % max(mnorm.dat.data_ro))
+
         # render the plot
-        fig, ((ax1,ax2), (ax3, ax4)) = plt.subplots(2,2)
-        plt.subplots_adjust(wspace=0.4, hspace=0.5)
-        ax1.plot(coords, Qnorm.dat.data_ro, 'b', label=r'$|Q|$')
+        fig, ((ax1,ax2), (ax3, ax4)) = plt.subplots(2,2,gridspec_kw={'width_ratios': [3,1]})
+        plt.subplots_adjust(wspace=0, hspace=0.5)
+        ax1.plot(coords, Qnorm.dat.data_ro/sqrt(2), 'b', label=r'$|Q|$')
         ax1.plot(coords, q.sub(0).dat.data_ro, '--g', label=r'$Q_{11}$')
         ax1.plot(coords, q.sub(1).dat.data_ro, '-.c', label=r'$Q_{12}$')
         ax1.legend(loc="lower right", frameon=False, fontsize=8)
         ax1.set_xlabel(r'$y$')
-        ax2.plot(coords, mnorm.dat.data_ro, 'r', label=r'$|M|$')
-        ax2.plot(coords, m.sub(0).dat.data_ro, '--g', label=r'$M_1$')
-        ax2.plot(coords, m.sub(1).dat.data_ro, '-.c', label=r'$M_2$')
-        ax2.legend(loc="lower right", frameon=False, fontsize=8)
-        ax2.set_xlabel(r'$y$')
-        ax3.quiver(np.zeros(self.N+1), coords[::self.degree], np.abs(n.sub(0).dat.data), np.abs(n.sub(1).dat.data), color='b', headwidth=0.1, headlength=0.1, headaxislength=0.00001, pivot='mid')
-        ax3.set_title('director')
-        #normalize m
+        ax2.quiver(np.zeros(self.N+1), coords[::self.degree], np.abs(n.sub(0).dat.data), np.abs(n.sub(1).dat.data), color='k', scale=8.0, headwidth=0.4, headlength=0.3, headaxislength=0.01, pivot='mid')
+        ax2.axis("off")
+        ax2.set_title(r"$\mathbf{n}$")
+        ax3.plot(coords, mnorm.dat.data_ro, 'r', label=r'$|M|$')
+        ax3.plot(coords, m.sub(0).dat.data_ro, '--g', label=r'$M_1$')
+        ax3.plot(coords, m.sub(1).dat.data_ro, '-.c', label=r'$M_2$')
+        ax3.legend(loc="lower right", frameon=False, fontsize=8)
+        ax3.set_xlabel(r'$y$')
+        # normalize M
         m1 = m.sub(0).dat.data_ro/(mnorm.dat.data_ro+1e-15)
         m2 = m.sub(1).dat.data_ro/(mnorm.dat.data_ro+1e-15)
-        ax4.quiver(np.zeros(self.N+1), coords[::self.degree], m1[::self.degree], m2[::self.degree], color='r', pivot='mid')
-        ax4.set_title('magnetization')
+        ax4.quiver(np.zeros(self.N+1), coords[::self.degree], m1[::self.degree], m2[::self.degree], color='k', scale=8.0, headwidth=5, headlength=7, headaxislength=7, pivot='mid')
+        ax4.axis("off")
+        ax4.set_title(r'$\mathbf{m}$')
         plt.savefig(filename)
         plt.clf()
 
@@ -208,6 +238,14 @@ class FerronematicsProblem(BifurcationProblem):
         filename = 'output/figs/l-%s/b-%d/solution.png' % (params[2], branchid)
         self.save_figs(solution, filename, params[0], params[1])
         print("Wrote to %s" % filename)
+#        c = params[0]
+#        xi = params[1]
+#        print("The first homogeneous solution of rho: %s" % self.homorho1(params))
+#        print("The first homogeneous solution of sigma: %s" % sqrt(2*c*self.homorho1(params)/xi + 1))
+#        print("The second homogeneous solution of rho: %s" % self.homorho2(params))
+#        print("The second homogeneous solution of sigma: %s" % sqrt(1-2*c*self.homorho2(params)/xi))
+#        print("The third homogeneous solution of rho: %s" % self.homorho3(params))
+#        print("The third homogeneous solution of sigma: %s" % sqrt(1-2*c*self.homorho3(params)/xi))
 
     def compute_stability(self, params, branchid, z, hint=None):
         Z = z.function_space()
@@ -247,7 +285,7 @@ class FerronematicsProblem(BifurcationProblem):
 
 if __name__ == "__main__":
     dc = DeflatedContinuation(problem=FerronematicsProblem(), teamsize=1, verbose=True, clear_output=True, logfiles=True)
-    #params = linspace(0.2, 3.0, 281) # l continuation, c=xi=1
-    #dc.run(values={"c": 1, "xi": 1, "l": params}, freeparam="l")
-    params = linspace(2, 5, 201) # l continuation, c=5, xi=1
-    dc.run(values={"c": 5, "xi": 1, "l": params}, freeparam="l")
+    params = linspace(0.2, 3.0, 281) # l continuation, c=xi=1
+    dc.run(values={"c": 1, "xi": 1, "l": params}, freeparam="l")
+    #params = linspace(2, 5, 201) # l continuation, c=5, xi=1
+    #dc.run(values={"c": 5, "xi": 1, "l": params}, freeparam="l")
