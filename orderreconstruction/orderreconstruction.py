@@ -252,7 +252,7 @@ class FerronematicsProblem(BifurcationProblem):
         m2 = np.zeros(size, dtype=int)
         ax4.quiver(np.zeros(self.N+1), coorddata[::self.degree], m1[::self.degree], m2[::self.degree], color='k', scale=8.0, headwidth=5, headlength=7, headaxislength=7, pivot='mid')
         ax4.axis("off")
-        ax4.set_title(r'$\mathbf{M}$')
+        ax4.set_title(r'$\mathbf{m}$')
         plt.savefig(filename)
         plt.clf()
 
