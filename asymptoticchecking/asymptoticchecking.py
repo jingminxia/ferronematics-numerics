@@ -17,7 +17,7 @@ class FerronematicsProblem(object):
     def mesh(self):
         self.levels = 0
         self.nviz = 0
-        self.N = 200
+        self.N = 1000
 
         base = IntervalMesh(self.N, length_or_left=-1, right=1)
         mh = MeshHierarchy(base, self.levels+self.nviz)
@@ -68,16 +68,16 @@ class FerronematicsProblem(object):
     def asymptotic_q(self, mesh):
         x = SpatialCoordinate(mesh)
         q1_asymp = ( -x[0]
-                     + c * (-1/5*pow(x[0],5) + 2/3*pow(x[0],3) - 7/15*x[0])
-                     + c**2 * (-1/30*pow(x[0],9) + 22/105*pow(x[0],7) - 31/75*pow(x[0],5) - 1/12*pow(x[0],4) + 14/45*pow(x[0],3) - 233/3150*x[0] + 1/12)
+                     #+ c * (-1/5*pow(x[0],5) + 2/3*pow(x[0],3) - 7/15*x[0])
+                     #+ c**2 * (-1/30*pow(x[0],9) + 22/105*pow(x[0],7) - 31/75*pow(x[0],5) - 1/12*pow(x[0],4) + 14/45*pow(x[0],3) - 233/3150*x[0] + 1/12)
                    )
         return as_vector([q1_asymp, 0])
 
     def asymptotic_m(self, mesh):
         x = SpatialCoordinate(mesh)
         m1_asymp = ( -x[0]
-                     + c * (-1/20*pow(x[0],5) + 1/6*pow(x[0],3) - 7/60*x[0])
-                     + c**2 * (-1/480*pow(x[0],9) + 11/840*pow(x[0],7) - 31/1200*pow(x[0],5) + 7/360*pow(x[0],3) - 1/(6*xi)*pow(x[0],4) - 233/50400*x[0]+1/(6*xi))
+                     #+ c * (-1/20*pow(x[0],5) + 1/6*pow(x[0],3) - 7/60*x[0])
+                     #+ c**2 * (-1/480*pow(x[0],9) + 11/840*pow(x[0],7) - 31/1200*pow(x[0],5) + 7/360*pow(x[0],3) - 1/(6*xi)*pow(x[0],4) - 233/50400*x[0]+1/(6*xi))
                    )
         return as_vector([m1_asymp, 0])
 
@@ -241,9 +241,9 @@ if __name__ == "__main__":
     plt.loglog([c[1],c[1]], q1_rem[0:2:1], "k")
     plt.loglog(c[0:2:1], q1_rem[0:2:1], "k")
     slope_q = (log(q1_rem[1])-log(q1_rem[0]))/(log(c[1])-log(c[0]))
-    #plt.text(1.6e-2, 3e-4, "slope %s" % slope_q, horizontalalignment="center", verticalalignment="center") # for 0th-order truncation
+    plt.text(1.6e-2, 3e-4, "slope %s" % slope_q, horizontalalignment="center", verticalalignment="center") # for 0th-order truncation
     #plt.text(1.6e-2, 8e-7, "slope %s" % slope_q, horizontalalignment="center", verticalalignment="center") # for 1st-order truncation
-    plt.text(1.6e-2, 9e-10, "slope %s" % slope_q, horizontalalignment="center", verticalalignment="center") # for 2nd-order truncation
+    #plt.text(1.6e-2, 9e-10, "slope %s" % slope_q, horizontalalignment="center", verticalalignment="center") # for 2nd-order truncation
     plt.savefig("q_asymptotic_rate.pdf", bbox_inches='tight')
     plt.clf()
 
@@ -256,8 +256,8 @@ if __name__ == "__main__":
     plt.loglog([c[1],c[1]], m1_rem[0:2:1], "k")
     plt.loglog(c[0:2:1], m1_rem[0:2:1], "k")
     slope_m = (log(m1_rem[1])-log(m1_rem[0]))/(log(c[1])-log(c[0]))
-    #plt.text(1.6e-2, 8e-5, "slope %s" % slope_m, horizontalalignment="center", verticalalignment="center") # for 0th-order truncation
+    plt.text(1.6e-2, 8e-5, "slope %s" % slope_m, horizontalalignment="center", verticalalignment="center") # for 0th-order truncation
     #plt.text(1.6e-2, 8e-7, "slope %s" % slope_m, horizontalalignment="center", verticalalignment="center") # for 1st-order truncation
-    plt.text(1.6e-2, 9e-10, "slope %s" % slope_m, horizontalalignment="center", verticalalignment="center") # for 2nd-order truncation
+    #plt.text(1.6e-2, 9e-10, "slope %s" % slope_m, horizontalalignment="center", verticalalignment="center") # for 2nd-order truncation
     plt.savefig("m_asymptotic_rate.pdf", bbox_inches='tight')
     plt.clf()
