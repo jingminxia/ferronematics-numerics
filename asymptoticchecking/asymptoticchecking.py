@@ -17,7 +17,7 @@ class FerronematicsProblem(object):
     def mesh(self):
         self.levels = 0
         self.nviz = 0
-        self.N = 20
+        self.N = 200
 
         base = IntervalMesh(self.N, length_or_left=-1, right=1)
         mh = MeshHierarchy(base, self.levels+self.nviz)
@@ -234,7 +234,7 @@ if __name__ == "__main__":
 
     plt.figure(1)
     plt.xlabel(r"$c$")
-    plt.ylabel(r"$||Q^{num}_{11}- Q^{asymp}_{11}||_\infty$")
+    plt.ylabel(r"$||Q^{num}_{11}- Q^{asymp}_{11}||_{L^\infty}$")
     plt.xticks(c)
     plt.loglog(c, q1_rem, 'b', marker="s", markersize=8, linewidth=2.0)
     plt.loglog(c[0:2:1], [q1_rem[0],q1_rem[0]], "k")
@@ -249,7 +249,7 @@ if __name__ == "__main__":
 
     plt.figure(2)
     plt.xlabel(r"$c$")
-    plt.ylabel(r"$||M^{num}_{1}- M_1^{asymp}||_\infty$")
+    plt.ylabel(r"$||M^{num}_{1}- M_1^{asymp}||_{L^\infty}$")
     plt.xticks(c)
     plt.loglog(c, m1_rem, 'b', marker="s", markersize=8,linewidth=2.0)
     plt.loglog(c[0:2:1], [m1_rem[0],m1_rem[0]], "k")
