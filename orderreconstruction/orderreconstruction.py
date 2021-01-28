@@ -14,7 +14,7 @@ class FerronematicsProblem(BifurcationProblem):
     def mesh(self, comm):
         self.levels = 0
         self.nviz = 0
-        self.N = 200
+        self.N = 1000
 
         base = IntervalMesh(self.N, length_or_left=-1, right=1, comm=comm)
         mh = MeshHierarchy(base, self.levels+self.nviz)
@@ -146,10 +146,12 @@ class FerronematicsProblem(BifurcationProblem):
     def initial_guess(self, Z, params, n):
         z = Function(Z)
         x = SpatialCoordinate(Z.mesh())
-        z.sub(0).interpolate(Constant(1.0))
+        #z.sub(0).interpolate(Constant(1.0))
+        z.sub(0).assign(self.homoQ1(params))
         #z.sub(1).assign(sqrt(1+2*params[0]*self.homoQ1(params)))
         #z.sub(1).assign(-sqrt(1+2*params[0]*self.homoQ1(params)))
-        z.sub(1).interpolate(Constant(1.0))
+        #z.sub(1).interpolate(Constant(1.0))
+        z.sub(1).interpolate(Constant(-1.0))
 
         return z
 
@@ -166,8 +168,8 @@ class FerronematicsProblem(BifurcationProblem):
 
         params = {
             "snes_max_it": maxits,
-            "snes_rtol": 1.0e-4,
-            "snes_atol": 1.0e-5,
+            "snes_rtol": 1.0e-6,
+            "snes_atol": 1.0e-8,
             "snes_stol":    0.0,
             "snes_monitor": None,
             "snes_linesearch_type": "l2",
@@ -223,7 +225,7 @@ class FerronematicsProblem(BifurcationProblem):
         ax1.plot(coords, np.full(len(coords), -self.homoQ1(params)), '-b', linewidth=3)
         ax1.legend(loc="best", bbox_to_anchor=(0.3,0.5), frameon=False, fontsize=8)
         ax1.set_xlabel(r'$y$')
-        ax2.quiver(np.zeros(self.N+1)[::10], coords[::10], np.abs(n1[::10]), np.abs(n2[::10]), color='k', scale=8.0, headwidth=0.4, headlength=0.3, headaxislength=0.01, pivot='mid')
+        ax2.quiver(np.zeros(self.N+1)[::50], coords[::50], np.abs(n1[::50]), np.abs(n2[::50]), color='k', scale=8.0, headwidth=0.4, headlength=0.3, headaxislength=0.01, pivot='mid')
         ax2.axis("off")
         ax2.set_title(r"$\mathbf{n}$")
         ax3.plot(coords, m.dat.data_ro, '-k', label=r"$M_1$", linewidth=3)
@@ -235,7 +237,7 @@ class FerronematicsProblem(BifurcationProblem):
         m1 = m.dat.data_ro/(np.sqrt(m.dat.data_ro**2)+1e-15)
         size = len(m1)
         m2 = np.zeros(size, dtype=int)
-        ax4.quiver(np.zeros(self.N+1)[::10], coords[::10], m1[::10], m2[::10], color='k', scale=8.0, headwidth=5, headlength=7, headaxislength=7, pivot='mid')
+        ax4.quiver(np.zeros(self.N+1)[::50], coords[::50], m1[::50], m2[::50], color='k', scale=8.0, headwidth=5, headlength=7, headaxislength=7, pivot='mid')
         ax4.axis("off")
         ax4.set_title(r'$\mathbf{m}$')
         plt.savefig(filename)
