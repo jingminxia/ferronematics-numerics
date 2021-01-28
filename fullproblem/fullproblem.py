@@ -14,7 +14,7 @@ class FerronematicsProblem(BifurcationProblem):
     def mesh(self, comm):
         self.levels = 0
         self.nviz = 0
-        self.N = 200
+        self.N = 1000
         self.degree = 1
 
         base = IntervalMesh(self.N, length_or_left=-1, right=1, comm=comm)
@@ -151,8 +151,8 @@ class FerronematicsProblem(BifurcationProblem):
 
         params = {
             "snes_max_it": maxits,
-            "snes_rtol": 1.0e-4,
-            "snes_atol": 1.0e-5,
+            "snes_rtol": 1.0e-6,
+            "snes_atol": 1.0e-8,
             "snes_stol":    0.0,
             "snes_monitor": None,
             "snes_linesearch_type": "l2",
@@ -227,7 +227,7 @@ class FerronematicsProblem(BifurcationProblem):
         plt.xlabel(r'$y$', fontsize=18)
         # subplot for director
         plt.subplot2grid((4,4), (0,3), colspan=1, rowspan=1)
-        plt.quiver(np.zeros(self.N+1)[::10], coords[::10], np.abs(n.sub(0).dat.data[::10]), np.abs(n.sub(1).dat.data[::10]), color='k', scale=5.0, headwidth=1, headlength=1.0, headaxislength=0.01, pivot='mid')
+        plt.quiver(np.zeros(self.N+1)[::50], coords[::50], np.abs(n.sub(0).dat.data[::50]), np.abs(n.sub(1).dat.data[::50]), color='k', scale=5.0, headwidth=1, headlength=1.0, headaxislength=0.01, pivot='mid')
         plt.axis("off")
         plt.title(r"$\mathbf{n}$", fontsize=18)
         theta = np.arctan2(q.sub(1).dat.data_ro, q.sub(0).dat.data_ro)
@@ -245,7 +245,7 @@ class FerronematicsProblem(BifurcationProblem):
         plt.subplot2grid((4,4), (1,3), colspan=1, rowspan=1)
         m1 = m.sub(0).dat.data_ro/(mnorm.dat.data_ro+1e-15)
         m2 = m.sub(1).dat.data_ro/(mnorm.dat.data_ro+1e-15)
-        plt.quiver(np.zeros(self.N+1)[::10], coords[::10], m1[::10], m2[::10], color='k', scale=5.0, headwidth=8, headlength=8, headaxislength=8, pivot='mid')
+        plt.quiver(np.zeros(self.N+1)[::50], coords[::50], m1[::50], m2[::50], color='k', scale=5.0, headwidth=8, headlength=8, headaxislength=8, pivot='mid')
         plt.axis("off")
         plt.title(r'$\mathbf{m}$', fontsize=18)
         phi = np.arctan2(m.sub(1).dat.data_ro, m.sub(0).dat.data_ro)
