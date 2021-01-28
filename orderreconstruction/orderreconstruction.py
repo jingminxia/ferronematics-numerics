@@ -14,13 +14,13 @@ class FerronematicsProblem(BifurcationProblem):
     def mesh(self, comm):
         self.levels = 0
         self.nviz = 0
-        self.N = 20
+        self.N = 200
 
         base = IntervalMesh(self.N, length_or_left=-1, right=1, comm=comm)
         mh = MeshHierarchy(base, self.levels+self.nviz)
 
         self.mh = mh
-        self.degree = 10
+        self.degree = 1
         self.CG = FunctionSpace(mh[self.levels], "CG", self.degree)
         return mh[self.levels]
 
@@ -146,12 +146,10 @@ class FerronematicsProblem(BifurcationProblem):
     def initial_guess(self, Z, params, n):
         z = Function(Z)
         x = SpatialCoordinate(Z.mesh())
-        # exact solution for Laplace limit
-        #z.sub(0).interpolate(-x[0])
-        #z.sub(1).interpolate(-x[0])
         z.sub(0).interpolate(Constant(1.0))
-        #z.sub(1).interpolate(Constant(1.0))
-        z.sub(1).interpolate(Constant(-1.0))
+        #z.sub(1).assign(sqrt(1+2*params[0]*self.homoQ1(params)))
+        #z.sub(1).assign(-sqrt(1+2*params[0]*self.homoQ1(params)))
+        z.sub(1).interpolate(Constant(1.0))
 
         return z
 
@@ -168,8 +166,8 @@ class FerronematicsProblem(BifurcationProblem):
 
         params = {
             "snes_max_it": maxits,
-            "snes_rtol": 1.0e-7,
-            "snes_atol": 1.0e-8,
+            "snes_rtol": 1.0e-4,
+            "snes_atol": 1.0e-5,
             "snes_stol":    0.0,
             "snes_monitor": None,
             "snes_linesearch_type": "l2",
@@ -213,20 +211,6 @@ class FerronematicsProblem(BifurcationProblem):
         n1 = n.sub(0).dat.data_ro
         n2 = n.sub(1).dat.data_ro
 
-        # The ordering of the polynomial is reversed for each subinterval
-        # when we use >=2 degree polynomials to approximate.
-        # So we want to change the ordering of the data for the first interval
-        # is actually on an ascending coordinate
-        # because later we need to plot the vector field at mesh points
-        qdata = np.array(list(q.dat.data_ro[:self.degree][::-1]) + list(q.dat.data_ro[self.degree::]))
-        mdata = np.array(list(m.dat.data_ro[:self.degree][::-1]) + list(m.dat.data_ro[self.degree::]))
-        coorddata = np.array(list(coords[:self.degree][::-1]) + list(coords[self.degree::]))
-        n1data = np.array(list(n1[:self.degree][::-1]) + list(n1[self.degree::]))
-        n2data = np.array(list(n2[:self.degree][::-1]) + list(n2[self.degree::]))
-
-        print("Max of Q11: %s" % max(qdata))
-        print("Max of M1**2: %s" % max(mdata**2))
-
         #with open('c-%s-xi-%s-l-%s-b-%s.txt' % (params[0],params[1],params[2],branchid), 'w') as output:
         #    for (coordvalue,q1value,m1value) in zip(coorddata,qdata,mdata):
         #        output.write(str((coordvalue,q1value,m1value)) + '\n')
@@ -234,24 +218,24 @@ class FerronematicsProblem(BifurcationProblem):
         # render the plot
         fig, ((ax1,ax2), (ax3, ax4)) = plt.subplots(2,2,gridspec_kw={'width_ratios': [3,1]})
         plt.subplots_adjust(wspace=0, hspace=0.5)
-        ax1.plot(coorddata, qdata, '.k', label=r"$Q_{11}$")
-        ax1.plot(coorddata, np.full(len(coorddata), self.homoQ1(params)), '-b', linewidth=3, label=r"$\pm\rho^*$")
-        ax1.plot(coorddata, np.full(len(coorddata), -self.homoQ1(params)), '-b', linewidth=3)
+        ax1.plot(coords, q.dat.data_ro, '-k', label=r"$Q_{11}$", linewidth=3)
+        ax1.plot(coords, np.full(len(coords), self.homoQ1(params)), '-b', linewidth=3, label=r"$\pm\rho^*$")
+        ax1.plot(coords, np.full(len(coords), -self.homoQ1(params)), '-b', linewidth=3)
         ax1.legend(loc="best", bbox_to_anchor=(0.3,0.5), frameon=False, fontsize=8)
         ax1.set_xlabel(r'$y$')
-        ax2.quiver(np.zeros(self.N+1), coorddata[::self.degree], np.abs(n1data), np.abs(n2data), color='k', scale=8.0, headwidth=0.4, headlength=0.3, headaxislength=0.01, pivot='mid')
+        ax2.quiver(np.zeros(self.N+1)[::10], coords[::10], np.abs(n1[::10]), np.abs(n2[::10]), color='k', scale=8.0, headwidth=0.4, headlength=0.3, headaxislength=0.01, pivot='mid')
         ax2.axis("off")
         ax2.set_title(r"$\mathbf{n}$")
-        ax3.plot(coorddata, mdata, '.k', label=r"$M_1$")
+        ax3.plot(coords, m.dat.data_ro, '-k', label=r"$M_1$", linewidth=3)
         c = params[0]
-        ax3.plot(coorddata, np.full(len(coorddata),sqrt(1+2*c*self.homoQ1(params))), '-b', linewidth=3, label=r"$\pm\sqrt{1+2c\rho^*}$")
-        ax3.plot(coorddata, np.full(len(coorddata),-sqrt(1+2*c*self.homoQ1(params))), '-b', linewidth=3)
+        ax3.plot(coords, np.full(len(coords),sqrt(1+2*c*self.homoQ1(params))), '-b', linewidth=3, label=r"$\pm\sqrt{1+2c\rho^*}$")
+        ax3.plot(coords, np.full(len(coords),-sqrt(1+2*c*self.homoQ1(params))), '-b', linewidth=3)
         ax3.legend(loc="lower left", bbox_to_anchor=(0.1,0.1), frameon=False, fontsize=8)
         ax3.set_xlabel(r'$y$')
-        m1 = mdata/(np.sqrt(mdata**2)+1e-15)
+        m1 = m.dat.data_ro/(np.sqrt(m.dat.data_ro**2)+1e-15)
         size = len(m1)
         m2 = np.zeros(size, dtype=int)
-        ax4.quiver(np.zeros(self.N+1), coorddata[::self.degree], m1[::self.degree], m2[::self.degree], color='k', scale=8.0, headwidth=5, headlength=7, headaxislength=7, pivot='mid')
+        ax4.quiver(np.zeros(self.N+1)[::10], coords[::10], m1[::10], m2[::10], color='k', scale=8.0, headwidth=5, headlength=7, headaxislength=7, pivot='mid')
         ax4.axis("off")
         ax4.set_title(r'$\mathbf{m}$')
         plt.savefig(filename)
