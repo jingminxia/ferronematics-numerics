@@ -13,7 +13,7 @@ class FerronematicsProblem(BifurcationProblem):
     def mesh(self, comm):
         self.levels = 0
         self.nviz = 0
-        self.N = 200
+        self.N = 1000
         self.degree = 1
 
         base = IntervalMesh(self.N, length_or_left=-1, right=1, comm=comm)
@@ -150,8 +150,8 @@ class FerronematicsProblem(BifurcationProblem):
 
         params = {
             "snes_max_it": maxits,
-            "snes_rtol": 1.0e-4,
-            "snes_atol": 1.0e-5,
+            "snes_rtol": 1.0e-6,
+            "snes_atol": 1.0e-8,
             "snes_stol":    0.0,
             "snes_monitor": None,
             "snes_linesearch_type": "l2",
@@ -216,7 +216,7 @@ class FerronematicsProblem(BifurcationProblem):
         ax1.plot(coords, q.sub(1).dat.data_ro, '-.c', label=r'$Q_{12}$')
         ax1.legend(loc="lower right", frameon=False, fontsize=8)
         ax1.set_xlabel(r'$y$')
-        ax2.quiver(np.zeros(self.N+1)[::10], coords[::10], np.abs(n.sub(0).dat.data[::10]), np.abs(n.sub(1).dat.data[::10]), color='k', scale=8.0, headwidth=0.4, headlength=0.3, headaxislength=0.01, pivot='mid')
+        ax2.quiver(np.zeros(self.N+1)[::50], coords[::50], np.abs(n.sub(0).dat.data[::50]), np.abs(n.sub(1).dat.data[::50]), color='k', scale=8.0, headwidth=0.4, headlength=0.3, headaxislength=0.01, pivot='mid')
         ax2.axis("off")
         ax2.set_title(r"$\mathbf{n}$")
         ax3.plot(coords, mnorm.dat.data_ro, 'r', label=r'$|M|$')
@@ -227,7 +227,7 @@ class FerronematicsProblem(BifurcationProblem):
         # normalize M
         m1 = m.sub(0).dat.data_ro/(mnorm.dat.data_ro+1e-15)
         m2 = m.sub(1).dat.data_ro/(mnorm.dat.data_ro+1e-15)
-        ax4.quiver(np.zeros(self.N+1)[::10], coords[::10], m1[::10], m2[::10], color='k', scale=8.0, headwidth=5, headlength=7, headaxislength=7, pivot='mid')
+        ax4.quiver(np.zeros(self.N+1)[::50], coords[::50], m1[::50], m2[::50], color='k', scale=8.0, headwidth=5, headlength=7, headaxislength=7, pivot='mid')
         ax4.axis("off")
         ax4.set_title(r'$\mathbf{m}$')
         plt.savefig(filename)
