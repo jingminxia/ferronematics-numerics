@@ -66,10 +66,10 @@ class FerronematicsProblem(BifurcationProblem):
         rhostar = self.homorho1(params)
         c = params[0]
         # d(p*, p**)
-        qbc = DirichletBC(Z.sub(0), Constant(rhostar), [1,2])
-        mbc1 = DirichletBC(Z.sub(1), Constant(sqrt(1+2*c*rhostar)), 1)
-        mbc2 = DirichletBC(Z.sub(1), Constant(-sqrt(1+2*c*rhostar)), 2)
-        bcs = [qbc, mbc1, mbc2]
+        #qbc = DirichletBC(Z.sub(0), Constant(rhostar), [1,2])
+        #mbc1 = DirichletBC(Z.sub(1), Constant(sqrt(1+2*c*rhostar)), 1)
+        #mbc2 = DirichletBC(Z.sub(1), Constant(-sqrt(1+2*c*rhostar)), 2)
+        #bcs = [qbc, mbc1, mbc2]
         # d(p*, p_b(1))
         #qbc1 = DirichletBC(Z.sub(0), Constant(rhostar), 1)
         #qbc2 = DirichletBC(Z.sub(0), Constant(-1), 2)
@@ -82,6 +82,18 @@ class FerronematicsProblem(BifurcationProblem):
         #mbc1 = DirichletBC(Z.sub(1), Constant(-sqrt(1+2*c*rhostar)), 1)
         #mbc2 = DirichletBC(Z.sub(1), Constant(1), 2)
         #bcs = [qbc1, qbc2, mbc1, mbc2]
+        # d(p*, p_b(-1))
+        #qbc1 = DirichletBC(Z.sub(0), Constant(rhostar), 1)
+        #qbc2 = DirichletBC(Z.sub(0), Constant(1), 2)
+        #mbc1 = DirichletBC(Z.sub(1), Constant(sqrt(1+2*c*rhostar)), 1)
+        #mbc2 = DirichletBC(Z.sub(1), Constant(1), 2)
+        #bcs = [qbc1, qbc2, mbc1, mbc2]
+        # d(p**, p_b(1))
+        qbc1 = DirichletBC(Z.sub(0), Constant(rhostar), 1)
+        qbc2 = DirichletBC(Z.sub(0), Constant(-1), 2)
+        mbc1 = DirichletBC(Z.sub(1), Constant(-sqrt(1+2*c*rhostar)), 1)
+        mbc2 = DirichletBC(Z.sub(1), Constant(-1), 2)
+        bcs = [qbc1, qbc2, mbc1, mbc2]
 
         return bcs
 
